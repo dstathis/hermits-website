@@ -10,7 +10,7 @@ MTG club website for The Deranged Hermits, hosting proxy-friendly Legacy and Pre
 ### Run with Docker Compose
 
 ```bash
-docker compose up --build
+make run
 ```
 
 The site will be available at **http://localhost** (Caddy reverse proxy on ports 80/443).
@@ -18,7 +18,7 @@ The site will be available at **http://localhost** (Caddy reverse proxy on ports
 ### Create an Admin User
 
 ```bash
-docker compose exec app ./seed admin your-password
+make seed USER=admin PASS=your-password
 ```
 
 ### Configuration
@@ -88,7 +88,7 @@ curl -X POST http://localhost/api/events \
 ### Run all tests locally
 
 ```bash
-./scripts/test.sh
+make test
 ```
 
 This starts a temporary PostgreSQL container on port 5433, runs the full test suite, and tears it down.
@@ -96,7 +96,7 @@ This starts a temporary PostgreSQL container on port 5433, runs the full test su
 ### Run unit tests only (no database required)
 
 ```bash
-go test ./internal/middleware/... ./internal/config/... ./internal/mail/...
+make test-unit
 ```
 
 ### Run with an existing database
