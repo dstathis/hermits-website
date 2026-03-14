@@ -28,16 +28,21 @@ func CSRF(secret string) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			switch r.Method {
 			case http.MethodGet, http.MethodHead, http.MethodOptions:
-				// Issue a CSRF token cookie on safe methods
-				token := generateCSRFToken(secret)
-				http.SetCookie(w, &http.Cookie{
-					Name:     csrfCookieName,
-					Value:    token,
-					Path:     "/",
-					HttpOnly: false, // JS needs to read it for AJAX
-					SameSite: http.SameSiteLaxMode,
-					MaxAge:   int(csrfMaxAge.Seconds()),
-				})
+				// Re-use existing valid CSRF cookie; only issue a new one if missing/invalid
+				var token string
+				if c, err := r.Cookie(csrfCookieName); err == nil && validSignature(c.Value, secret) {
+					token = c.Value
+				} else {
+					token = generateCSRFToken(secret)
+					http.SetCookie(w, &http.Cookie{
+						Name:     csrfCookieName,
+						Value:    token,
+						Path:     "/",
+						HttpOnly: false, // JS needs to read it for AJAX
+						SameSite: http.SameSiteLaxMode,
+						MaxAge:   int(csrfMaxAge.Seconds()),
+					})
+				}
 				// Store token in context so CSRFTemplateField always sees the current token
 				ctx := context.WithValue(r.Context(), csrfContextKey{}, token)
 				next.ServeHTTP(w, r.WithContext(ctx))
@@ -100,6 +105,16 @@ func signCSRF(data, secret string) string {
 	mac := hmac.New(sha256.New, []byte(secret))
 	mac.Write([]byte(data))
 	return hex.EncodeToString(mac.Sum(nil))
+}
+
+// validSignature checks if a token has a correct HMAC signature.
+func validSignature(token, secret string) bool {
+	parts := splitToken(token)
+	if parts == nil {
+		return false
+	}
+	expected := signCSRF(parts[0], secret)
+	return hmac.Equal([]byte(parts[1]), []byte(expected))
 }
 
 func splitToken(token string) []string {
