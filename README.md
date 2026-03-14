@@ -6,7 +6,6 @@ MTG club website for The Deranged Hermits, hosting proxy-friendly Legacy and Pre
 
 ### Prerequisites
 - Docker & Docker Compose
-- (or) Go 1.23+ and PostgreSQL 16+
 
 ### Run with Docker Compose
 
@@ -14,52 +13,52 @@ MTG club website for The Deranged Hermits, hosting proxy-friendly Legacy and Pre
 docker compose up --build
 ```
 
-The site will be available at **http://localhost:8080**.
+The site will be available at **http://localhost** (Caddy reverse proxy on ports 80/443).
 
 ### Create an Admin User
 
 ```bash
-# With Docker:
 docker compose exec app ./seed admin your-password
-
-# Without Docker:
-go run ./cmd/seed admin your-password
 ```
 
-### Run Locally (without Docker)
+### Configuration
 
-1. Start PostgreSQL and create a database:
-   ```bash
-   createdb hermits
-   psql hermits < migrations/001_init.sql
-   ```
+Copy `.env.example` to `.env` and edit as needed:
 
-2. Set environment variables:
-   ```bash
-   export DATABASE_URL="postgres://localhost:5432/hermits?sslmode=disable"
-   export SESSION_SECRET="some-secret"
-   export API_KEY="your-api-key"
-   ```
-
-3. Run the server:
-   ```bash
-   go run ./cmd/server
-   ```
-
-## Configuration
+```bash
+cp .env.example .env
+```
 
 | Variable | Description | Default |
 |---|---|---|
-| `DATABASE_URL` | PostgreSQL connection string | `postgres://hermits:hermits@localhost:5432/hermits?sslmode=disable` |
-| `PORT` | HTTP listen port | `8080` |
-| `SESSION_SECRET` | Secret for session cookies | `change-me-in-production` |
+| `DOMAIN` | Domain for Caddy HTTPS | `localhost` |
+| `DATABASE_URL` | PostgreSQL connection string | `postgres://hermits:hermits@db:5432/hermits?sslmode=disable` |
+| `PORT` | Internal HTTP listen port | `8080` |
+| `SESSION_SECRET` | Secret for session signing & CSRF | `change-me-in-production` |
 | `API_KEY` | Bearer token for `/api` routes | (empty — API disabled) |
-| `BASE_URL` | Public URL of the site | `http://localhost:8080` |
+| `BASE_URL` | Public URL of the site (used in emails) | `http://localhost` |
 | `SMTP_HOST` | SMTP server hostname | (empty — email disabled) |
 | `SMTP_PORT` | SMTP server port | `587` |
 | `SMTP_USER` | SMTP username | |
 | `SMTP_PASS` | SMTP password | |
 | `SMTP_FROM` | From address for emails | `noreply@derangedhermits.com` |
+
+For production, generate secrets with `openssl rand -hex 32`.
+
+## Features
+
+- **Event management** — create, edit, delete events from the admin panel
+- **Email subscriptions** — double opt-in confirmation email flow
+- **Event notifications** — notify confirmed subscribers about new events with per-subscriber unsubscribe tokens
+- **iCal downloads** — add events to your calendar
+- **JSON API** — programmatic access with Bearer token auth
+- **CSRF protection** — double-submit cookie pattern on all browser forms
+- **Rate limiting** — per-IP limits on login, subscribe, and API routes
+- **Signed sessions** — HMAC-SHA256 signed session cookies
+- **Caddy reverse proxy** — automatic HTTPS with Let's Encrypt in production
+- **Health check** — `GET /health` endpoint
+- **Graceful shutdown** — drains connections on SIGTERM
+- **Structured logging** — JSON logs via `log/slog`
 
 ## JSON API
 
@@ -67,10 +66,10 @@ All `/api` endpoints require `Authorization: Bearer <API_KEY>` header.
 
 ```bash
 # List upcoming events
-curl -H "Authorization: Bearer your-api-key" http://localhost:8080/api/events?upcoming=true
+curl -H "Authorization: Bearer your-api-key" http://localhost/api/events?upcoming=true
 
 # Create an event
-curl -X POST http://localhost:8080/api/events \
+curl -X POST http://localhost/api/events \
   -H "Authorization: Bearer your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -87,21 +86,22 @@ curl -X POST http://localhost:8080/api/events \
 ## Project Structure
 
 ```
-cmd/server/main.go          — HTTP server entrypoint
-cmd/seed/main.go            — CLI to create admin users
-internal/config/             — Environment-based configuration
-internal/db/                 — Database queries (events, subscribers, auth)
-internal/handlers/           — HTTP handlers (home, events, subscribe, admin, API)
-internal/mail/               — SMTP email sending
-internal/middleware/          — Auth middleware (sessions + API key)
-migrations/                  — SQL schema
-templates/                   — Go HTML templates
-static/                      — CSS, images
+cmd/server/main.go           — HTTP server entrypoint
+cmd/seed/main.go             — CLI to create admin users
+internal/config/              — Environment-based configuration
+internal/db/                  — Database queries (events, subscribers, auth)
+internal/handlers/            — HTTP handlers (home, events, subscribe, admin, API)
+internal/mail/                — SMTP email sending
+internal/middleware/           — CSRF, rate limiting, auth, session signing
+migrations/                   — SQL schema & migrations
+templates/                    — Go HTML templates
+static/                       — CSS, images
+Caddyfile                     — Caddy reverse proxy config
 ```
 
 ## Hero Image
 
-Place the hero image at `static/art.png` for the homepage hero background.
+Place the hero image at `static/art.png` for the homepage hero background. Recommended resolution: 1920×640px.
 
 ## License
 
