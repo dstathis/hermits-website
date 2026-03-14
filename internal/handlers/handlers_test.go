@@ -74,6 +74,13 @@ func templateDir() string {
 	return filepath.Join("..", "..", "templates")
 }
 
+var testFuncMap = template.FuncMap{
+	"formatDate": func(t time.Time, layout string) string {
+		athens, _ := time.LoadLocation("Europe/Athens")
+		return t.In(athens).Format(layout)
+	},
+}
+
 func parsePage(files ...string) *template.Template {
 	dir := templateDir()
 	layoutFile := filepath.Join(dir, "layout.html")
@@ -81,7 +88,7 @@ func parsePage(files ...string) *template.Template {
 	for _, f := range files {
 		paths = append(paths, filepath.Join(dir, f))
 	}
-	t, err := template.ParseFiles(paths...)
+	t, err := template.New(filepath.Base(layoutFile)).Funcs(testFuncMap).ParseFiles(paths...)
 	if err != nil {
 		log.Fatalf("Failed to parse template %v: %v", files, err)
 	}

@@ -40,13 +40,20 @@ func main() {
 
 	// Parse each page template separately with the layout to avoid
 	// conflicting "content" block definitions.
+	athens, _ := time.LoadLocation("Europe/Athens")
+	funcMap := template.FuncMap{
+		"formatDate": func(t time.Time, layout string) string {
+			return t.In(athens).Format(layout)
+		},
+	}
+
 	layoutFile := filepath.Join("templates", "layout.html")
 	parsePage := func(files ...string) *template.Template {
 		paths := []string{layoutFile}
 		for _, f := range files {
 			paths = append(paths, filepath.Join("templates", f))
 		}
-		t, err := template.ParseFiles(paths...)
+		t, err := template.New(filepath.Base(layoutFile)).Funcs(funcMap).ParseFiles(paths...)
 		if err != nil {
 			slog.Error("Failed to parse template", "files", files, "error", err)
 			os.Exit(1)
@@ -58,10 +65,13 @@ func main() {
 	eventsTmpl := parsePage("events.html")
 
 	// Admin templates are standalone (no layout)—parse them individually.
-	adminLoginTmpl := template.Must(template.ParseFiles(filepath.Join("templates", "admin_login.html")))
-	adminTmpl := template.Must(template.ParseFiles(filepath.Join("templates", "admin.html")))
-	adminEventFormTmpl := template.Must(template.ParseFiles(filepath.Join("templates", "admin_event_form.html")))
-	adminInviteTmpl := template.Must(template.ParseFiles(filepath.Join("templates", "admin_invite.html")))
+	parseAdmin := func(file string) *template.Template {
+		return template.Must(template.New(file).Funcs(funcMap).ParseFiles(filepath.Join("templates", file)))
+	}
+	adminLoginTmpl := parseAdmin("admin_login.html")
+	adminTmpl := parseAdmin("admin.html")
+	adminEventFormTmpl := parseAdmin("admin_event_form.html")
+	adminInviteTmpl := parseAdmin("admin_invite.html")
 
 	homeH := &handlers.HomeHandler{DB: database, Templates: homeTmpl}
 	eventsH := &handlers.EventsHandler{DB: database, Templates: eventsTmpl}

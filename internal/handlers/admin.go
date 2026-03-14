@@ -400,6 +400,8 @@ func (h *AdminHandler) renderNotificationEmail(event *db.Event, unsubscribeToken
 	if event.LocationURL != "" {
 		loc = fmt.Sprintf(`<a href="%s">%s</a>`, event.LocationURL, event.Location)
 	}
+	athens, _ := time.LoadLocation("Europe/Athens")
+	dateStr := event.Date.In(athens).Format("Monday, 2 January 2006 · 15:04")
 	return fmt.Sprintf(`
 		<div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#1a1a2e;color:#e0e0e0;padding:24px;border-radius:8px;">
 			<h1 style="color:#4ecca3;">%s</h1>
@@ -412,7 +414,7 @@ func (h *AdminHandler) renderNotificationEmail(event *db.Event, unsubscribeToken
 			<p style="font-size:12px;color:#888;">You're receiving this because you subscribed to The Deranged Hermits event notifications.
 			<a href="%s/unsubscribe?token=%s" style="color:#4ecca3;">Unsubscribe</a></p>
 		</div>
-	`, event.Title, event.Format, event.Date.Format("Monday, 2 January 2006 · 15:04"), loc, event.EntryFee, event.Description, h.BaseURL, unsubscribeToken)
+	`, event.Title, event.Format, dateStr, loc, event.EntryFee, event.Description, h.BaseURL, unsubscribeToken)
 }
 
 func parseEventForm(r *http.Request) (*db.Event, error) {

@@ -41,13 +41,13 @@
             <div class="form-row">
                 <div class="form-group form-group-half">
                     <label for="event_date">Date</label>
-                    {{$dateVal := ""}}{{if not .IsNew}}{{$dateVal = (.Event.Date.Format "2006-01-02")}}{{end}}
+                    {{$dateVal := ""}}{{if not .IsNew}}{{$dateVal = (formatDate .Event.Date "2006-01-02")}}{{end}}
                     <input type="text" id="event_date" name="event_date" value="{{$dateVal}}" required class="input"
                         placeholder="Pick a date" autocomplete="off">
                 </div>
                 <div class="form-group form-group-half">
                     <label for="event_time">Time</label>
-                    {{$timeVal := "16:00"}}{{if not .IsNew}}{{$timeVal = (.Event.Date.Format "15:04")}}{{end}}
+                    {{$timeVal := "16:00"}}{{if not .IsNew}}{{$timeVal = (formatDate .Event.Date "15:04")}}{{end}}
                     <input type="text" id="event_time" name="event_time" value="{{$timeVal}}" required class="input"
                         placeholder="Pick a time" autocomplete="off">
                 </div>

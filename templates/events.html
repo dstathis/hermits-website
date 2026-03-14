@@ -14,7 +14,7 @@
             <div class="event-format">{{.Format}}</div>
             <h3>{{.Title}}</h3>
             <div class="event-meta">
-                <span class="event-date">📅 {{.Date.Format "Monday, 2 January 2006 · 15:04"}}</span>
+                <span class="event-date">📅 {{formatDate .Date "Monday, 2 January 2006 · 15:04"}}</span>
                 <span class="event-location">
                     📍 {{if .LocationURL}}<a href="{{.LocationURL}}" target="_blank"
                         rel="noopener">{{.Location}}</a>{{else}}{{.Location}}{{end}}
@@ -42,7 +42,7 @@
             <div class="event-format">{{.Format}}</div>
             <h3>{{.Title}}</h3>
             <div class="event-meta">
-                <span class="event-date">📅 {{.Date.Format "Monday, 2 January 2006 · 15:04"}}</span>
+                <span class="event-date">📅 {{formatDate .Date "Monday, 2 January 2006 · 15:04"}}</span>
                 <span class="event-location">📍 {{.Location}}</span>
             </div>
         </div>

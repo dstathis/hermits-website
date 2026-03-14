@@ -19,10 +19,13 @@ import (
 
 func newAdminHandler() *AdminHandler {
 	dir := templateDir()
-	loginTmpl := template.Must(template.ParseFiles(dir + "/admin_login.html"))
-	dashTmpl := template.Must(template.ParseFiles(dir + "/admin.html"))
-	formTmpl := template.Must(template.ParseFiles(dir + "/admin_event_form.html"))
-	inviteTmpl := template.Must(template.ParseFiles(dir + "/admin_invite.html"))
+	parseAdmin := func(file string) *template.Template {
+		return template.Must(template.New(file).Funcs(testFuncMap).ParseFiles(dir + "/" + file))
+	}
+	loginTmpl := parseAdmin("admin_login.html")
+	dashTmpl := parseAdmin("admin.html")
+	formTmpl := parseAdmin("admin_event_form.html")
+	inviteTmpl := parseAdmin("admin_invite.html")
 	cfg := &config.Config{}
 	mailer := mail.New(cfg)
 
