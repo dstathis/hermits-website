@@ -110,6 +110,93 @@
             <p class="empty-state">No subscribers yet.</p>
             {{end}}
         </section>
+
+        <section class="admin-section">
+            <div class="section-header">
+                <h2>Admin Users</h2>
+            </div>
+
+            <form method="POST" action="/admin/users/invite" class="invite-form"
+                style="margin-bottom:1.5rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:flex-end;">
+                {{$.CSRFField}}
+                <div>
+                    <label for="invite-username"
+                        style="display:block;font-size:0.85rem;margin-bottom:0.25rem;">Username</label>
+                    <input type="text" id="invite-username" name="username" placeholder="Username" required
+                        class="input" style="width:180px;">
+                </div>
+                <div>
+                    <label for="invite-email"
+                        style="display:block;font-size:0.85rem;margin-bottom:0.25rem;">Email</label>
+                    <input type="email" id="invite-email" name="email" placeholder="Email" required class="input"
+                        style="width:240px;">
+                </div>
+                <button type="submit" class="btn">Invite User</button>
+            </form>
+
+            {{if .AdminUsers}}
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .AdminUsers}}
+                    <tr>
+                        <td>{{.Username}}</td>
+                        <td>{{.Email}}</td>
+                        <td>{{if .InviteToken}}<span style="color:#e8a838;">⏳ Pending</span>{{else}}<span
+                                style="color:#4ecca3;">✓ Active</span>{{end}}</td>
+                        <td>{{.CreatedAt.Format "02 Jan 2006"}}</td>
+                        <td>
+                            {{if eq .ID $.CurrentUserID}}
+                            <form method="POST" action="/admin/users/{{.ID}}/delete" style="display:inline;">
+                                {{$.CSRFField}}
+                                <button type="submit" class="btn btn-sm btn-danger"
+                                    onclick="return confirm('This will delete your account and log you out. Are you sure?')">Leave</button>
+                            </form>
+                            {{else}}
+                            <span style="color:#888;">—</span>
+                            {{end}}
+                        </td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+            {{end}}
+        </section>
+
+        <section class="admin-section">
+            <h2>Change Password</h2>
+            <form method="POST" action="/admin/password"
+                style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:flex-end;">
+                {{$.CSRFField}}
+                <div>
+                    <label for="current-password" style="display:block;font-size:0.85rem;margin-bottom:0.25rem;">Current
+                        Password</label>
+                    <input type="password" id="current-password" name="current_password" required class="input"
+                        style="width:200px;" autocomplete="current-password">
+                </div>
+                <div>
+                    <label for="new-password" style="display:block;font-size:0.85rem;margin-bottom:0.25rem;">New
+                        Password</label>
+                    <input type="password" id="new-password" name="new_password" required class="input"
+                        style="width:200px;" minlength="8" autocomplete="new-password">
+                </div>
+                <div>
+                    <label for="confirm-password"
+                        style="display:block;font-size:0.85rem;margin-bottom:0.25rem;">Confirm</label>
+                    <input type="password" id="confirm-password" name="new_password_confirm" required class="input"
+                        style="width:200px;" minlength="8" autocomplete="new-password">
+                </div>
+                <button type="submit" class="btn">Update Password</button>
+            </form>
+        </section>
     </main>
 </body>
 

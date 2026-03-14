@@ -16,9 +16,13 @@ CREATE TABLE events (
 CREATE TABLE admin_users (
     id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     username      TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
+    email         TEXT NOT NULL DEFAULT '',
+    password_hash TEXT NOT NULL DEFAULT '',
+    invite_token  TEXT NOT NULL DEFAULT '',
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE INDEX idx_admin_users_invite_token ON admin_users(invite_token) WHERE invite_token != '';
 
 CREATE TABLE sessions (
     id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -11,6 +11,9 @@
 <body class="admin-body">
     <div class="login-container">
         <h1>🐿️ Admin Login</h1>
+        {{if .Flash}}
+        <div class="flash flash-success">{{.Flash}}</div>
+        {{end}}
         {{if .Error}}
         <div class="flash flash-error">{{.Error}}</div>
         {{end}}

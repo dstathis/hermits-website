@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Your Password — The Deranged Hermits</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body class="admin-body">
+    <div class="login-container">
+        <h1>🐿️ Welcome, {{.Username}}!</h1>
+        <p>Set a password to activate your admin account.</p>
+        {{if .Error}}
+        <div class="flash flash-error">{{.Error}}</div>
+        {{end}}
+        <form method="POST" action="/admin/invite/accept" class="login-form">
+            {{.CSRFField}}
+            <input type="hidden" name="token" value="{{.Token}}">
+            <input type="password" name="password" placeholder="Password (min 8 characters)" required class="input"
+                autocomplete="new-password" minlength="8">
+            <input type="password" name="password_confirm" placeholder="Confirm password" required class="input"
+                autocomplete="new-password" minlength="8">
+            <button type="submit" class="btn">Set Password</button>
+        </form>
+    </div>
+</body>
+
+</html>

@@ -20,6 +20,7 @@ type AdminHandler struct {
 	LoginTemplate     *template.Template
 	DashTemplate      *template.Template
 	EventFormTemplate *template.Template
+	InviteTemplate    *template.Template
 	Mailer            *mail.Mailer
 	BaseURL           string
 	SessionSecret     string
@@ -27,7 +28,10 @@ type AdminHandler struct {
 
 // GET /admin/login
 func (h *AdminHandler) LoginPage(w http.ResponseWriter, r *http.Request) {
-	data := map[string]interface{}{"CSRFField": middleware.CSRFTemplateField(r)}
+	data := map[string]interface{}{
+		"CSRFField": middleware.CSRFTemplateField(r),
+		"Flash":     r.URL.Query().Get("flash"),
+	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	h.LoginTemplate.Execute(w, data)
 }
@@ -93,12 +97,19 @@ func (h *AdminHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+	users, err := db.GetAllAdminUsers(h.DB)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 
 	data := map[string]interface{}{
-		"Events":      events,
-		"Subscribers": subs,
-		"Flash":       r.URL.Query().Get("flash"),
-		"CSRFField":   middleware.CSRFTemplateField(r),
+		"Events":        events,
+		"Subscribers":   subs,
+		"AdminUsers":    users,
+		"CurrentUserID": r.Context().Value(middleware.UserIDKey),
+		"Flash":         r.URL.Query().Get("flash"),
+		"CSRFField":     middleware.CSRFTemplateField(r),
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -220,6 +231,168 @@ func (h *AdminHandler) DeleteSubscriber(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	http.Redirect(w, r, "/admin?flash=Subscriber+removed", http.StatusSeeOther)
+}
+
+// POST /admin/users/invite
+func (h *AdminHandler) InviteUser(w http.ResponseWriter, r *http.Request) {
+	username := strings.TrimSpace(r.FormValue("username"))
+	email := strings.TrimSpace(r.FormValue("email"))
+
+	if username == "" || email == "" {
+		http.Redirect(w, r, "/admin?flash=Username+and+email+are+required", http.StatusSeeOther)
+		return
+	}
+	if len(username) > 100 || len(email) > 254 {
+		http.Redirect(w, r, "/admin?flash=Input+too+long", http.StatusSeeOther)
+		return
+	}
+
+	token, err := db.InviteAdminUser(h.DB, username, email)
+	if err != nil {
+		http.Redirect(w, r, "/admin?flash=Failed+to+invite+user+(username+may+already+exist)", http.StatusSeeOther)
+		return
+	}
+
+	// Send invite email
+	go func() {
+		inviteURL := fmt.Sprintf("%s/admin/invite/accept?token=%s", h.BaseURL, token)
+		body := fmt.Sprintf(`
+			<div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#1a1a2e;color:#e0e0e0;padding:24px;border-radius:8px;">
+				<h1 style="color:#4ecca3;">You've Been Invited!</h1>
+				<p>You've been invited to be an admin of <strong>The Deranged Hermits</strong> website.</p>
+				<p>Your username is: <strong>%s</strong></p>
+				<p style="text-align:center;margin:32px 0;">
+					<a href="%s" style="background:#4ecca3;color:#1a1a2e;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">Set Your Password</a>
+				</p>
+				<p style="font-size:12px;color:#888;">If you weren't expecting this invite, you can safely ignore this email.</p>
+			</div>
+		`, username, inviteURL)
+		h.Mailer.Send(email, "You're invited — The Deranged Hermits Admin", body)
+	}()
+
+	http.Redirect(w, r, "/admin?flash=Invite+sent+to+"+email, http.StatusSeeOther)
+}
+
+// POST /admin/users/{id}/delete
+func (h *AdminHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	currentUserID, _ := r.Context().Value(middleware.UserIDKey).(string)
+	if id != currentUserID {
+		http.Redirect(w, r, "/admin?flash=You+can+only+remove+your+own+account", http.StatusSeeOther)
+		return
+	}
+	if err := db.DeleteAdminUser(h.DB, id); err != nil {
+		http.Error(w, "Failed to delete user", http.StatusInternalServerError)
+		return
+	}
+	// Log out after self-deletion
+	cookie, err := r.Cookie("session")
+	if err == nil {
+		db.DeleteSession(h.DB, cookie.Value)
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:   "session",
+		Value:  "",
+		Path:   "/",
+		MaxAge: -1,
+	})
+	http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
+}
+
+// POST /admin/password
+func (h *AdminHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	currentUserID, _ := r.Context().Value(middleware.UserIDKey).(string)
+	oldPass := r.FormValue("current_password")
+	newPass := r.FormValue("new_password")
+	confirmPass := r.FormValue("new_password_confirm")
+
+	if len(newPass) < 8 {
+		http.Redirect(w, r, "/admin?flash=New+password+must+be+at+least+8+characters", http.StatusSeeOther)
+		return
+	}
+	if newPass != confirmPass {
+		http.Redirect(w, r, "/admin?flash=New+passwords+do+not+match", http.StatusSeeOther)
+		return
+	}
+
+	if err := db.ChangePassword(h.DB, currentUserID, oldPass, newPass); err != nil {
+		http.Redirect(w, r, "/admin?flash=Incorrect+current+password", http.StatusSeeOther)
+		return
+	}
+
+	http.Redirect(w, r, "/admin?flash=Password+changed", http.StatusSeeOther)
+}
+
+// GET /admin/invite/accept
+func (h *AdminHandler) AcceptInviteForm(w http.ResponseWriter, r *http.Request) {
+	token := r.URL.Query().Get("token")
+	if token == "" {
+		http.Error(w, "Missing token", http.StatusBadRequest)
+		return
+	}
+	user, err := db.GetAdminUserByInviteToken(h.DB, token)
+	if err != nil || user == nil {
+		http.Error(w, "Invalid or expired invite link", http.StatusNotFound)
+		return
+	}
+	data := map[string]interface{}{
+		"Token":     token,
+		"Username":  user.Username,
+		"CSRFField": middleware.CSRFTemplateField(r),
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	h.InviteTemplate.Execute(w, data)
+}
+
+// POST /admin/invite/accept
+func (h *AdminHandler) AcceptInvite(w http.ResponseWriter, r *http.Request) {
+	token := r.FormValue("token")
+	password := r.FormValue("password")
+	confirm := r.FormValue("password_confirm")
+
+	if token == "" {
+		http.Error(w, "Missing token", http.StatusBadRequest)
+		return
+	}
+	if len(password) < 8 {
+		user, _ := db.GetAdminUserByInviteToken(h.DB, token)
+		uname := ""
+		if user != nil {
+			uname = user.Username
+		}
+		data := map[string]interface{}{
+			"Token":     token,
+			"Username":  uname,
+			"Error":     "Password must be at least 8 characters",
+			"CSRFField": middleware.CSRFTemplateField(r),
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		h.InviteTemplate.Execute(w, data)
+		return
+	}
+	if password != confirm {
+		user, _ := db.GetAdminUserByInviteToken(h.DB, token)
+		uname := ""
+		if user != nil {
+			uname = user.Username
+		}
+		data := map[string]interface{}{
+			"Token":     token,
+			"Username":  uname,
+			"Error":     "Passwords do not match",
+			"CSRFField": middleware.CSRFTemplateField(r),
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		h.InviteTemplate.Execute(w, data)
+		return
+	}
+
+	if err := db.AcceptInvite(h.DB, token, password); err != nil {
+		http.Error(w, "Invalid or expired invite link", http.StatusNotFound)
+		return
+	}
+
+	http.Redirect(w, r, "/admin/login?flash=Password+set!+You+can+now+log+in.", http.StatusSeeOther)
 }
 
 func (h *AdminHandler) renderNotificationEmail(event *db.Event, unsubscribeToken string) string {

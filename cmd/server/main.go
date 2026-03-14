@@ -61,6 +61,7 @@ func main() {
 	adminLoginTmpl := template.Must(template.ParseFiles(filepath.Join("templates", "admin_login.html")))
 	adminTmpl := template.Must(template.ParseFiles(filepath.Join("templates", "admin.html")))
 	adminEventFormTmpl := template.Must(template.ParseFiles(filepath.Join("templates", "admin_event_form.html")))
+	adminInviteTmpl := template.Must(template.ParseFiles(filepath.Join("templates", "admin_invite.html")))
 
 	homeH := &handlers.HomeHandler{DB: database, Templates: homeTmpl}
 	eventsH := &handlers.EventsHandler{DB: database, Templates: eventsTmpl}
@@ -70,6 +71,7 @@ func main() {
 		LoginTemplate:     adminLoginTmpl,
 		DashTemplate:      adminTmpl,
 		EventFormTemplate: adminEventFormTmpl,
+		InviteTemplate:    adminInviteTmpl,
 		Mailer:            mailer,
 		BaseURL:           cfg.BaseURL,
 		SessionSecret:     cfg.SessionSecret,
@@ -115,6 +117,10 @@ func main() {
 		r.With(loginRL).Get("/admin/login", adminH.LoginPage)
 		r.With(loginRL).Post("/admin/login", adminH.Login)
 
+		// Invite accept (public, no auth required)
+		r.Get("/admin/invite/accept", adminH.AcceptInviteForm)
+		r.Post("/admin/invite/accept", adminH.AcceptInvite)
+
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.RequireAuth(database, cfg.SessionSecret))
 
@@ -129,6 +135,10 @@ func main() {
 			r.Post("/admin/events/{id}/notify", adminH.NotifySubscribers)
 
 			r.Post("/admin/subscribers/{id}/delete", adminH.DeleteSubscriber)
+
+			r.Post("/admin/users/invite", adminH.InviteUser)
+			r.Post("/admin/users/{id}/delete", adminH.DeleteUser)
+			r.Post("/admin/password", adminH.ChangePassword)
 		})
 	})
 

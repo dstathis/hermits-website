@@ -8,7 +8,6 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql
-      - ./migrations/002_subscriber_confirm_default.sql:/docker-entrypoint-initdb.d/002_subscriber_confirm_default.sql
     ports:
       - "5432:5432"
     healthcheck:
