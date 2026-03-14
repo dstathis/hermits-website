@@ -24,6 +24,10 @@ push: image ## Build and push image to Docker Hub
 run: ## Start all services with docker compose
 	docker compose up -d
 
+deploy: ## Pull latest image and restart services
+	docker compose pull
+	docker compose up -d
+
 stop: ## Stop all services
 	docker compose down
 
