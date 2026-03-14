@@ -27,7 +27,18 @@ type AdminHandler struct {
 }
 
 // GET /admin/login
+// GET /admin/login
 func (h *AdminHandler) LoginPage(w http.ResponseWriter, r *http.Request) {
+	// If already logged in, redirect to dashboard
+	if cookie, err := r.Cookie("session"); err == nil {
+		if sessionID, ok := middleware.VerifySessionID(cookie.Value, h.SessionSecret); ok {
+			if sess, _ := db.GetSession(h.DB, sessionID); sess != nil {
+				http.Redirect(w, r, "/admin", http.StatusSeeOther)
+				return
+			}
+		}
+	}
+
 	data := map[string]interface{}{
 		"CSRFField": middleware.CSRFTemplateField(r),
 		"Flash":     r.URL.Query().Get("flash"),
@@ -65,7 +76,7 @@ func (h *AdminHandler) Login(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		Secure:   secure,
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   86400,
+		MaxAge:   30 * 86400,
 	})
 	http.Redirect(w, r, "/admin", http.StatusSeeOther)
 }

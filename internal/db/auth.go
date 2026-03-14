@@ -143,7 +143,7 @@ func CreateSession(db *sql.DB, userID string) (*Session, error) {
 	s := &Session{
 		ID:        uuid.New().String(),
 		UserID:    userID,
-		ExpiresAt: time.Now().Add(24 * time.Hour),
+		ExpiresAt: time.Now().Add(30 * 24 * time.Hour),
 	}
 	_, err := db.Exec(`INSERT INTO sessions (id, user_id, expires_at) VALUES ($1, $2, $3)`, s.ID, s.UserID, s.ExpiresAt)
 	if err != nil {
