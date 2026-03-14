@@ -83,6 +83,33 @@ curl -X POST http://localhost/api/events \
   }'
 ```
 
+## Testing
+
+### Run all tests locally
+
+```bash
+./scripts/test.sh
+```
+
+This starts a temporary PostgreSQL container on port 5433, runs the full test suite, and tears it down.
+
+### Run unit tests only (no database required)
+
+```bash
+go test ./internal/middleware/... ./internal/config/... ./internal/mail/...
+```
+
+### Run with an existing database
+
+```bash
+export TEST_DATABASE_URL="postgres://hermits_test:hermits_test@localhost:5433/hermits_test?sslmode=disable"
+docker compose -f docker-compose.test.yml up -d db
+go test -v -count=1 -p 1 ./...
+docker compose -f docker-compose.test.yml down
+```
+
+Tests also run automatically on pull requests via GitHub Actions.
+
 ## Project Structure
 
 ```
