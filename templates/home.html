@@ -1,0 +1,77 @@
+{{template "layout" .}}
+
+{{define "content"}}
+<section class="hero">
+    <div class="hero-overlay">
+        <h1>The Deranged Hermits</h1>
+        <p class="tagline">Proxy-friendly Magic: The Gathering tournaments in Athens, Greece</p>
+    </div>
+</section>
+
+{{if .Unsubscribed}}
+<div class="flash">You have been unsubscribed. Sorry to see you go!</div>
+{{end}}
+
+{{if .Confirmed}}
+<div class="flash flash-success">✅ Your email has been confirmed! You'll now receive event notifications.</div>
+{{end}}
+
+{{if .ConfirmError}}
+<div class="flash flash-error">Invalid or expired confirmation link. Please try subscribing again.</div>
+{{end}}
+
+<section class="about">
+    <h2>About the Club</h2>
+    <p>
+        The Deranged Hermits host regular <strong>Legacy</strong> and <strong>Premodern</strong> tournaments
+        at <strong>Dragonphoenix Inn</strong> in Athens, Greece. We welcome players of all skill levels.
+    </p>
+    <div class="info-cards">
+        <div class="info-card">
+            <h3>🃏 Proxies Welcome</h3>
+            <p>All proxies must be color prints of the card. Everyone can play their favorite deck!</p>
+        </div>
+        <div class="info-card">
+            <h3>🏆 100% Prize Pool</h3>
+            <p>The entire entry fee goes to the prize pool. Prizes are paid out as Deranged Hermits credit, redeemable
+                for singles.</p>
+        </div>
+        <div class="info-card">
+            <h3>📍 Athens, Greece</h3>
+            <p>Events are held at Dragonphoenix Inn. Registration at 16:00, Round 1 at 16:15.</p>
+        </div>
+    </div>
+</section>
+
+{{if .NextEvent}}
+<section class="next-event">
+    <h2>Next Event</h2>
+    <div class="event-card featured">
+        <div class="event-format">{{.NextEvent.Format}}</div>
+        <h3>{{.NextEvent.Title}}</h3>
+        <div class="event-meta">
+            <span class="event-date">📅 {{.NextEvent.Date.Format "Monday, 2 January 2006 · 15:04"}}</span>
+            <span class="event-location">
+                📍 {{if .NextEvent.LocationURL}}<a href="{{.NextEvent.LocationURL}}" target="_blank"
+                    rel="noopener">{{.NextEvent.Location}}</a>{{else}}{{.NextEvent.Location}}{{end}}
+            </span>
+            <span class="event-fee">🎟️ {{.NextEvent.EntryFee}}</span>
+        </div>
+        <p class="event-desc">{{.NextEvent.Description}}</p>
+        <a href="/events/{{.NextEvent.ID}}/ical" class="btn btn-sm">📥 Add to Calendar</a>
+    </div>
+</section>
+{{end}}
+
+<section class="subscribe-section" id="subscribe">
+    <h2>Stay in the Loop</h2>
+    <p>Subscribe to get notified about new events.</p>
+    <form action="/subscribe" method="POST" class="subscribe-form">
+        {{.CSRFField}}
+        <input type="text" name="name" placeholder="Name (optional)" class="input">
+        <input type="email" name="email" placeholder="Email address" required class="input">
+        <button type="submit" class="btn">Subscribe</button>
+    </form>
+    <div id="subscribe-result"></div>
+</section>
+{{end}}

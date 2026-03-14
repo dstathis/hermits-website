@@ -1,0 +1,7 @@
+{{define "subscribe_result"}}
+{{if .AlreadyExists}}
+<p class="flash flash-info">You're already subscribed! Check your email if you haven't confirmed yet.</p>
+{{else if .Success}}
+<p class="flash flash-success">📧 Check your inbox! We've sent you a confirmation email.</p>
+{{end}}
+{{end}}

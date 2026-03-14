@@ -1,0 +1,36 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{if .Title}}{{.Title}} — {{end}}The Deranged Hermits</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" href="/static/favicon.ico">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="/" class="nav-brand">🐿️ The Deranged Hermits</a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/events">Events</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        {{template "content" .}}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>The Deranged Hermits — MTG Club, Athens, Greece · <a href="https://github.com/dstathis/hermits-website"
+                    target="_blank" rel="noopener">Source Code</a></p>
+        </div>
+    </footer>
+</body>
+
+</html>{{end}}

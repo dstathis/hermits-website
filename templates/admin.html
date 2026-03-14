@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — The Deranged Hermits</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body class="admin-body">
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="/admin" class="nav-brand">🐿️ Admin Panel</a>
+            <div class="nav-links">
+                <a href="/" target="_blank">View Site</a>
+                <form method="POST" action="/admin/logout" style="display:inline;">
+                    {{$.CSRFField}}
+                    <button type="submit" class="btn btn-sm btn-logout">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container admin-main">
+        {{if .Flash}}
+        <div class="flash flash-success">{{.Flash}}</div>
+        {{end}}
+
+        <section class="admin-section">
+            <div class="section-header">
+                <h2>Events</h2>
+                <a href="/admin/events/new" class="btn">+ New Event</a>
+            </div>
+
+            {{if .Events}}
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Format</th>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Events}}
+                    <tr>
+                        <td>{{.Title}}</td>
+                        <td>{{.Format}}</td>
+                        <td>{{.Date.Format "02 Jan 2006 15:04"}}</td>
+                        <td>{{.Location}}</td>
+                        <td class="actions">
+                            <a href="/admin/events/{{.ID}}/edit" class="btn btn-sm">Edit</a>
+                            <form method="POST" action="/admin/events/{{.ID}}/notify" style="display:inline;">
+                                {{$.CSRFField}}
+                                <button type="submit" class="btn btn-sm btn-notify"
+                                    onclick="return confirm('Send notification to all subscribers?')">Notify</button>
+                            </form>
+                            <form method="POST" action="/admin/events/{{.ID}}/delete" style="display:inline;">
+                                {{$.CSRFField}}
+                                <button type="submit" class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Delete this event?')">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+            {{else}}
+            <p class="empty-state">No events yet. Create your first event!</p>
+            {{end}}
+        </section>
+
+        <section class="admin-section">
+            <h2>Subscribers ({{len .Subscribers}})</h2>
+
+            {{if .Subscribers}}
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Name</th>
+                        <th>Status</th>
+                        <th>Subscribed</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Subscribers}}
+                    <tr>
+                        <td>{{.Email}}</td>
+                        <td>{{.Name}}</td>
+                        <td>{{if .Confirmed}}<span style="color:#4ecca3;">✓ Confirmed</span>{{else}}<span
+                                style="color:#e8a838;">⏳ Pending</span>{{end}}</td>
+                        <td>{{.CreatedAt.Format "02 Jan 2006"}}</td>
+                        <td>
+                            <form method="POST" action="/admin/subscribers/{{.ID}}/delete" style="display:inline;">
+                                {{$.CSRFField}}
+                                <button type="submit" class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Remove this subscriber?')">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+            {{else}}
+            <p class="empty-state">No subscribers yet.</p>
+            {{end}}
+        </section>
+    </main>
+</body>
+
+</html>

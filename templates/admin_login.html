@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login — The Deranged Hermits</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body class="admin-body">
+    <div class="login-container">
+        <h1>🐿️ Admin Login</h1>
+        {{if .Error}}
+        <div class="flash flash-error">{{.Error}}</div>
+        {{end}}
+        <form method="POST" action="/admin/login" class="login-form">
+            {{.CSRFField}}
+            <input type="text" name="username" placeholder="Username" required class="input" autocomplete="username">
+            <input type="password" name="password" placeholder="Password" required class="input"
+                autocomplete="current-password">
+            <button type="submit" class="btn">Log In</button>
+        </form>
+        <p><a href="/">← Back to site</a></p>
+    </div>
+</body>
+
+</html>

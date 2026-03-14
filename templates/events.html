@@ -1,0 +1,64 @@
+{{template "layout" .}}
+
+{{define "content"}}
+<section class="page-header">
+    <h1>Events</h1>
+</section>
+
+{{if .Upcoming}}
+<section class="events-section">
+    <h2>Upcoming Events</h2>
+    <div class="events-list">
+        {{range .Upcoming}}
+        <div class="event-card">
+            <div class="event-format">{{.Format}}</div>
+            <h3>{{.Title}}</h3>
+            <div class="event-meta">
+                <span class="event-date">📅 {{.Date.Format "Monday, 2 January 2006 · 15:04"}}</span>
+                <span class="event-location">
+                    📍 {{if .LocationURL}}<a href="{{.LocationURL}}" target="_blank"
+                        rel="noopener">{{.Location}}</a>{{else}}{{.Location}}{{end}}
+                </span>
+                <span class="event-fee">🎟️ {{.EntryFee}}</span>
+            </div>
+            <p class="event-desc">{{.Description}}</p>
+            <a href="/events/{{.ID}}/ical" class="btn btn-sm">📥 Add to Calendar</a>
+        </div>
+        {{end}}
+    </div>
+</section>
+{{else}}
+<section class="events-section">
+    <p class="empty-state">No upcoming events scheduled yet. Subscribe below to get notified!</p>
+</section>
+{{end}}
+
+{{if .Past}}
+<section class="events-section past-events">
+    <h2>Past Events</h2>
+    <div class="events-list">
+        {{range .Past}}
+        <div class="event-card past">
+            <div class="event-format">{{.Format}}</div>
+            <h3>{{.Title}}</h3>
+            <div class="event-meta">
+                <span class="event-date">📅 {{.Date.Format "Monday, 2 January 2006 · 15:04"}}</span>
+                <span class="event-location">📍 {{.Location}}</span>
+            </div>
+        </div>
+        {{end}}
+    </div>
+</section>
+{{end}}
+
+<section class="subscribe-section" id="subscribe">
+    <h2>Stay in the Loop</h2>
+    <p>Subscribe to get notified about new events.</p>
+    <form action="/subscribe" method="POST" class="subscribe-form">
+        {{.CSRFField}}
+        <input type="text" name="name" placeholder="Name (optional)" class="input">
+        <input type="email" name="email" placeholder="Email address" required class="input">
+        <button type="submit" class="btn">Subscribe</button>
+    </form>
+</section>
+{{end}}

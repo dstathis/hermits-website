@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{if .IsNew}}New Event{{else}}Edit Event{{end}} — Admin</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+</head>
+
+<body class="admin-body">
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="/admin" class="nav-brand">🐿️ Admin Panel</a>
+            <div class="nav-links">
+                <a href="/admin">← Back to Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container admin-main">
+        <h1>{{if .IsNew}}Create New Event{{else}}Edit Event{{end}}</h1>
+
+        <form method="POST" action="{{if .IsNew}}/admin/events{{else}}/admin/events/{{.Event.ID}}{{end}}"
+            class="event-form">
+            {{.CSRFField}}
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" id="title" name="title" value="{{.Event.Title}}" required class="input"
+                    placeholder="e.g., Legacy Tournament">
+            </div>
+
+            <div class="form-group">
+                <label for="format">Format</label>
+                <input type="text" id="format" name="format" value="{{.Event.Format}}" class="input"
+                    placeholder="e.g., Legacy, Premodern">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group form-group-half">
+                    <label for="event_date">Date</label>
+                    {{$dateVal := ""}}{{if not .IsNew}}{{$dateVal = (.Event.Date.Format "2006-01-02")}}{{end}}
+                    <input type="text" id="event_date" name="event_date" value="{{$dateVal}}" required class="input"
+                        placeholder="Pick a date" autocomplete="off">
+                </div>
+                <div class="form-group form-group-half">
+                    <label for="event_time">Time</label>
+                    {{$timeVal := "16:00"}}{{if not .IsNew}}{{$timeVal = (.Event.Date.Format "15:04")}}{{end}}
+                    <input type="text" id="event_time" name="event_time" value="{{$timeVal}}" required class="input"
+                        placeholder="Pick a time" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="location">Location</label>
+                <input type="text" id="location" name="location" value="{{.Event.Location}}" class="input"
+                    placeholder="e.g., Dragonphoenix Inn">
+            </div>
+
+            <div class="form-group">
+                <label for="location_url">Location URL (Google Maps)</label>
+                <input type="url" id="location_url" name="location_url" value="{{.Event.LocationURL}}" class="input"
+                    placeholder="https://maps.google.com/...">
+            </div>
+
+            <div class="form-group">
+                <label for="entry_fee">Entry Fee</label>
+                <input type="text" id="entry_fee" name="entry_fee" value="{{.Event.EntryFee}}" class="input"
+                    placeholder="e.g., 10€">
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="6" class="input">{{.Event.Description}}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn">{{if .IsNew}}Create Event{{else}}Update Event{{end}}</button>
+                <a href="/admin" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        flatpickr('#event_date', {
+            dateFormat: 'Y-m-d',
+            altInput: true,
+            altFormat: 'l, j F Y',
+            defaultDate: document.getElementById('event_date').value || undefined,
+        });
+        flatpickr('#event_time', {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: 'H:i',
+            altInput: true,
+            altFormat: 'H:i',
+            time_24hr: true,
+            minuteIncrement: 15,
+            defaultDate: document.getElementById('event_time').value || '16:00',
+        });
+    </script>
+</body>
+
+</html>
