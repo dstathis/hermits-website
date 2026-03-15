@@ -11,12 +11,16 @@ import (
 
 func main() {
 	if len(os.Args) < 3 {
-		fmt.Fprintf(os.Stderr, "Usage: seed <username> <password>\n")
+		fmt.Fprintf(os.Stderr, "Usage: seed <username> <password> [email]\n")
 		os.Exit(1)
 	}
 
 	username := os.Args[1]
 	password := os.Args[2]
+	email := ""
+	if len(os.Args) >= 4 {
+		email = os.Args[3]
+	}
 
 	cfg := config.Load()
 	database, err := db.Connect(cfg.DatabaseURL)
@@ -25,7 +29,7 @@ func main() {
 	}
 	defer database.Close()
 
-	if err := db.CreateAdminUser(database, username, password); err != nil {
+	if err := db.CreateAdminUser(database, username, password, email); err != nil {
 		log.Fatalf("Failed to create admin user: %v", err)
 	}
 

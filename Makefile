@@ -37,5 +37,5 @@ logs: ## Tail service logs
 clean: ## Stop services and remove volumes
 	docker compose down -v
 
-seed: ## Create an admin user (username: admin, password: admin)
-	docker compose exec app ./seed admin admin
+seed: ## Create an admin user (usage: make seed USER=admin PASS=changeme EMAIL=admin@example.com)
+	docker compose exec app ./seed $(USER) $(PASS) $(EMAIL)

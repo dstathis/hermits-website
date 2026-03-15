@@ -18,8 +18,10 @@ The site will be available at **http://localhost** (Caddy reverse proxy on ports
 ### Create an Admin User
 
 ```bash
-make seed USER=admin PASS=your-password
+make seed USER=admin PASS=your-password EMAIL=you@example.com
 ```
+
+`EMAIL` is optional.
 
 ### Configuration
 
@@ -109,6 +111,10 @@ docker compose -f docker-compose.test.yml down
 ```
 
 Tests also run automatically on pull requests via GitHub Actions.
+
+## Makefile
+
+Run `make help` to see all available targets.
 
 ## Project Structure
 

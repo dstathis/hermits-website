@@ -58,7 +58,7 @@ func TestAdminLogin_Success(t *testing.T) {
 	cleanAll(t)
 	h := newAdminHandler()
 
-	db.CreateAdminUser(testDB, "logintest", "password123")
+	db.CreateAdminUser(testDB, "logintest", "password123", "")
 	token := getCSRFToken(t)
 
 	form := url.Values{}
@@ -94,7 +94,7 @@ func TestAdminLogin_WrongPassword(t *testing.T) {
 	cleanAll(t)
 	h := newAdminHandler()
 
-	db.CreateAdminUser(testDB, "logintest2", "correct")
+	db.CreateAdminUser(testDB, "logintest2", "correct", "")
 	token := getCSRFToken(t)
 
 	form := url.Values{}
@@ -119,7 +119,7 @@ func TestAdminDashboard(t *testing.T) {
 	cleanAll(t)
 	h := newAdminHandler()
 
-	db.CreateAdminUser(testDB, "dashuser", "pass1234")
+	db.CreateAdminUser(testDB, "dashuser", "pass1234", "")
 	user, _ := db.Authenticate(testDB, "dashuser", "pass1234")
 
 	// Create context with user ID
@@ -231,8 +231,8 @@ func TestAdminDeleteUser_SelfOnly(t *testing.T) {
 	h := newAdminHandler()
 	token := getCSRFToken(t)
 
-	db.CreateAdminUser(testDB, "selfuser", "pass1234")
-	db.CreateAdminUser(testDB, "otheruser", "pass1234")
+	db.CreateAdminUser(testDB, "selfuser", "pass1234", "")
+	db.CreateAdminUser(testDB, "otheruser", "pass1234", "")
 	self, _ := db.Authenticate(testDB, "selfuser", "pass1234")
 	other, _ := db.Authenticate(testDB, "otheruser", "pass1234")
 
@@ -360,7 +360,7 @@ func TestAdminChangePassword(t *testing.T) {
 	cleanAll(t)
 	h := newAdminHandler()
 
-	db.CreateAdminUser(testDB, "changepwuser", "oldpass12")
+	db.CreateAdminUser(testDB, "changepwuser", "oldpass12", "")
 	user, _ := db.Authenticate(testDB, "changepwuser", "oldpass12")
 
 	csrfToken := getCSRFToken(t)

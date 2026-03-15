@@ -343,12 +343,12 @@ func TestCreateAdminUser(t *testing.T) {
 	cleanTable(t, "sessions")
 	cleanTable(t, "admin_users")
 
-	if err := CreateAdminUser(testDB, "admin", "password123"); err != nil {
+	if err := CreateAdminUser(testDB, "admin", "password123", ""); err != nil {
 		t.Fatalf("CreateAdminUser: %v", err)
 	}
 
 	// Duplicate should error
-	if err := CreateAdminUser(testDB, "admin", "other"); err == nil {
+	if err := CreateAdminUser(testDB, "admin", "other", ""); err == nil {
 		t.Error("expected error for duplicate username")
 	}
 }
@@ -357,7 +357,7 @@ func TestAuthenticate(t *testing.T) {
 	cleanTable(t, "sessions")
 	cleanTable(t, "admin_users")
 
-	CreateAdminUser(testDB, "testadmin", "correct-password")
+	CreateAdminUser(testDB, "testadmin", "correct-password", "")
 
 	user, err := Authenticate(testDB, "testadmin", "correct-password")
 	if err != nil {
@@ -375,7 +375,7 @@ func TestAuthenticate_WrongPassword(t *testing.T) {
 	cleanTable(t, "sessions")
 	cleanTable(t, "admin_users")
 
-	CreateAdminUser(testDB, "admin2", "correct")
+	CreateAdminUser(testDB, "admin2", "correct", "")
 
 	user, err := Authenticate(testDB, "admin2", "wrong")
 	if err != nil {
@@ -445,7 +445,7 @@ func TestChangePassword(t *testing.T) {
 	cleanTable(t, "sessions")
 	cleanTable(t, "admin_users")
 
-	CreateAdminUser(testDB, "changepw", "oldpass12")
+	CreateAdminUser(testDB, "changepw", "oldpass12", "")
 	user, _ := Authenticate(testDB, "changepw", "oldpass12")
 
 	if err := ChangePassword(testDB, user.ID, "oldpass12", "newpass12"); err != nil {
@@ -469,7 +469,7 @@ func TestChangePassword_WrongCurrent(t *testing.T) {
 	cleanTable(t, "sessions")
 	cleanTable(t, "admin_users")
 
-	CreateAdminUser(testDB, "changepw2", "oldpass12")
+	CreateAdminUser(testDB, "changepw2", "oldpass12", "")
 	user, _ := Authenticate(testDB, "changepw2", "oldpass12")
 
 	if err := ChangePassword(testDB, user.ID, "wrongcurrent", "newpass12"); err == nil {
@@ -483,7 +483,7 @@ func TestCreateAndGetSession(t *testing.T) {
 	cleanTable(t, "sessions")
 	cleanTable(t, "admin_users")
 
-	CreateAdminUser(testDB, "sessuser", "pass1234")
+	CreateAdminUser(testDB, "sessuser", "pass1234", "")
 	user, _ := Authenticate(testDB, "sessuser", "pass1234")
 
 	session, err := CreateSession(testDB, user.ID)
@@ -510,7 +510,7 @@ func TestDeleteSession(t *testing.T) {
 	cleanTable(t, "sessions")
 	cleanTable(t, "admin_users")
 
-	CreateAdminUser(testDB, "sessuser2", "pass1234")
+	CreateAdminUser(testDB, "sessuser2", "pass1234", "")
 	user, _ := Authenticate(testDB, "sessuser2", "pass1234")
 	session, _ := CreateSession(testDB, user.ID)
 
@@ -538,8 +538,8 @@ func TestGetAllAdminUsers(t *testing.T) {
 	cleanTable(t, "sessions")
 	cleanTable(t, "admin_users")
 
-	CreateAdminUser(testDB, "user1", "pass1234")
-	CreateAdminUser(testDB, "user2", "pass5678")
+	CreateAdminUser(testDB, "user1", "pass1234", "")
+	CreateAdminUser(testDB, "user2", "pass5678", "")
 
 	users, err := GetAllAdminUsers(testDB)
 	if err != nil {
@@ -554,7 +554,7 @@ func TestDeleteAdminUser(t *testing.T) {
 	cleanTable(t, "sessions")
 	cleanTable(t, "admin_users")
 
-	CreateAdminUser(testDB, "todelete", "pass1234")
+	CreateAdminUser(testDB, "todelete", "pass1234", "")
 	user, _ := Authenticate(testDB, "todelete", "pass1234")
 
 	if err := DeleteAdminUser(testDB, user.ID); err != nil {
@@ -571,7 +571,7 @@ func TestDeleteAdminUser_CascadesSessions(t *testing.T) {
 	cleanTable(t, "sessions")
 	cleanTable(t, "admin_users")
 
-	CreateAdminUser(testDB, "cascadeuser", "pass1234")
+	CreateAdminUser(testDB, "cascadeuser", "pass1234", "")
 	user, _ := Authenticate(testDB, "cascadeuser", "pass1234")
 	session, _ := CreateSession(testDB, user.ID)
 

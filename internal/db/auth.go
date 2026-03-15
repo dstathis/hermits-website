@@ -25,12 +25,12 @@ type Session struct {
 	CreatedAt time.Time
 }
 
-func CreateAdminUser(db *sql.DB, username, password string) error {
+func CreateAdminUser(db *sql.DB, username, password, email string) error {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
-	_, err = db.Exec(`INSERT INTO admin_users (username, password_hash) VALUES ($1, $2)`, username, string(hash))
+	_, err = db.Exec(`INSERT INTO admin_users (username, password_hash, email) VALUES ($1, $2, $3)`, username, string(hash), email)
 	return err
 }
 
