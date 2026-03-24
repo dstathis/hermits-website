@@ -63,6 +63,7 @@ func main() {
 
 	homeTmpl := parsePage("home.html", "subscribe_result.html")
 	eventsTmpl := parsePage("events.html")
+	eventDetailTmpl := parsePage("event_detail.html")
 
 	// Admin templates are standalone (no layout)—parse them individually.
 	parseAdmin := func(file string) *template.Template {
@@ -74,7 +75,7 @@ func main() {
 	adminInviteTmpl := parseAdmin("admin_invite.html")
 
 	homeH := &handlers.HomeHandler{DB: database, Templates: homeTmpl}
-	eventsH := &handlers.EventsHandler{DB: database, Templates: eventsTmpl}
+	eventsH := &handlers.EventsHandler{DB: database, Templates: eventsTmpl, DetailTemplate: eventDetailTmpl}
 	subH := &handlers.SubscribeHandler{DB: database, Templates: homeTmpl, BaseURL: cfg.BaseURL, Mailer: mailer}
 	adminH := &handlers.AdminHandler{
 		DB:                database,
@@ -119,6 +120,7 @@ func main() {
 
 		r.Get("/", homeH.ServeHTTP)
 		r.Get("/events", eventsH.List)
+		r.Get("/events/{id}", eventsH.Detail)
 		r.Get("/events/{id}/ical", eventsH.ICal)
 		r.With(subscribeRL).Post("/subscribe", subH.Subscribe)
 		r.Get("/confirm", subH.Confirm)

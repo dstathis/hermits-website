@@ -46,6 +46,7 @@
 {{if .NextEvent}}
 <section class="next-event">
     <h2>Next Event</h2>
+    <a href="/events/{{.NextEvent.ID}}" class="event-card-link">
     <div class="event-card featured">
         <div class="event-format">{{.NextEvent.Format}}</div>
         <h3>{{.NextEvent.Title}}</h3>
@@ -58,8 +59,9 @@
             <span class="event-fee">🎟️ {{.NextEvent.EntryFee}}</span>
         </div>
         <p class="event-desc">{{.NextEvent.Description}}</p>
-        <a href="/events/{{.NextEvent.ID}}/ical" class="btn btn-sm">📥 Add to Calendar</a>
+        <span class="btn btn-sm">📥 Add to Calendar</span>
     </div>
+    </a>
 </section>
 {{end}}
 

@@ -1,0 +1,28 @@
+{{template "layout" .}}
+
+{{define "content"}}
+<section class="page-header">
+    <p class="back-link"><a href="/events">← All Events</a></p>
+    <div class="event-format">{{.Event.Format}}</div>
+    <h1>{{.Event.Title}}</h1>
+</section>
+
+<section class="event-detail">
+    <div class="event-meta">
+        <span class="event-date">📅 {{formatDate .Event.Date "Monday, 2 January 2006 · 15:04"}}</span>
+        <span class="event-location">
+            📍 {{if .Event.LocationURL}}<a href="{{.Event.LocationURL}}" target="_blank"
+                rel="noopener">{{.Event.Location}}</a>{{else}}{{.Event.Location}}{{end}}
+        </span>
+        {{if .Event.EntryFee}}<span class="event-fee">🎟️ {{.Event.EntryFee}}</span>{{end}}
+    </div>
+    {{if .Event.Description}}
+    <div class="event-description">
+        <p class="event-desc">{{.Event.Description}}</p>
+    </div>
+    {{end}}
+    <div class="event-actions">
+        <a href="/events/{{.Event.ID}}/ical" class="btn btn-sm">📥 Add to Calendar</a>
+    </div>
+</section>
+{{end}}

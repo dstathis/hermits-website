@@ -10,6 +10,7 @@
     <h2>Upcoming Events</h2>
     <div class="events-list">
         {{range .Upcoming}}
+        <a href="/events/{{.ID}}" class="event-card-link">
         <div class="event-card">
             <div class="event-format">{{.Format}}</div>
             <h3>{{.Title}}</h3>
@@ -22,8 +23,9 @@
                 <span class="event-fee">🎟️ {{.EntryFee}}</span>
             </div>
             <p class="event-desc">{{.Description}}</p>
-            <a href="/events/{{.ID}}/ical" class="btn btn-sm">📥 Add to Calendar</a>
+            <span class="btn btn-sm">📥 Add to Calendar</span>
         </div>
+        </a>
         {{end}}
     </div>
 </section>
@@ -38,6 +40,7 @@
     <h2>Past Events</h2>
     <div class="events-list">
         {{range .Past}}
+        <a href="/events/{{.ID}}" class="event-card-link">
         <div class="event-card past">
             <div class="event-format">{{.Format}}</div>
             <h3>{{.Title}}</h3>
@@ -46,6 +49,7 @@
                 <span class="event-location">📍 {{.Location}}</span>
             </div>
         </div>
+        </a>
         {{end}}
     </div>
 </section>

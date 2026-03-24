@@ -85,6 +85,125 @@ func TestEventsICal_NotFound(t *testing.T) {
 	}
 }
 
+func TestEventDetail(t *testing.T) {
+	cleanAll(t)
+	tmpl := parsePage("event_detail.html")
+
+	e := &db.Event{
+		Title:       "Detail Test Event",
+		Format:      "Premodern",
+		Date:        futureDate(),
+		Location:    "Test Venue",
+		LocationURL: "https://example.com/map",
+		EntryFee:    "5€",
+		Description: "A test event for detail page",
+	}
+	db.CreateEvent(testDB, e)
+
+	h := &EventsHandler{DB: testDB, DetailTemplate: tmpl}
+
+	r := chi.NewRouter()
+	r.Get("/events/{id}", h.Detail)
+
+	req := httptest.NewRequest(http.MethodGet, "/events/"+e.ID, nil)
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "Detail Test Event") {
+		t.Error("expected body to contain event title")
+	}
+	if !strings.Contains(body, "Premodern") {
+		t.Error("expected body to contain event format")
+	}
+	if !strings.Contains(body, "A test event for detail page") {
+		t.Error("expected body to contain event description")
+	}
+	if !strings.Contains(body, "https://example.com/map") {
+		t.Error("expected body to contain location URL")
+	}
+	if !strings.Contains(body, "5€") {
+		t.Error("expected body to contain entry fee")
+	}
+}
+
+func TestEventDetail_NotFound(t *testing.T) {
+	tmpl := parsePage("event_detail.html")
+	h := &EventsHandler{DB: testDB, DetailTemplate: tmpl}
+
+	r := chi.NewRouter()
+	r.Get("/events/{id}", h.Detail)
+
+	req := httptest.NewRequest(http.MethodGet, "/events/00000000-0000-0000-0000-000000000000", nil)
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusNotFound {
+		t.Errorf("expected 404, got %d", rec.Code)
+	}
+}
+
+func TestEventDetailSetsPageTitle(t *testing.T) {
+	cleanAll(t)
+	tmpl := parsePage("event_detail.html")
+
+	e := &db.Event{
+		Title:  "Title Test",
+		Format: "Legacy",
+		Date:   futureDate(),
+	}
+	db.CreateEvent(testDB, e)
+
+	h := &EventsHandler{DB: testDB, DetailTemplate: tmpl}
+
+	r := chi.NewRouter()
+	r.Get("/events/{id}", h.Detail)
+
+	req := httptest.NewRequest(http.MethodGet, "/events/"+e.ID, nil)
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	body := rec.Body.String()
+	// The layout template uses .Title for the <title> tag
+	if !strings.Contains(body, "<title>Title Test") {
+		t.Errorf("expected page <title> to contain event title, body:\n%s", body)
+	}
+}
+
+func TestEventsListLinksToDetail(t *testing.T) {
+	cleanAll(t)
+	tmpl := parsePage("events.html")
+
+	e := &db.Event{
+		Title:  "Linked Event",
+		Format: "Legacy",
+		Date:   futureDate(),
+	}
+	db.CreateEvent(testDB, e)
+
+	h := &EventsHandler{DB: testDB, Templates: tmpl}
+	handler := middleware.CSRF("test-secret")(http.HandlerFunc(h.List))
+
+	req := httptest.NewRequest(http.MethodGet, "/events", nil)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	body := rec.Body.String()
+	expectedLink := "/events/" + e.ID
+	if !strings.Contains(body, expectedLink) {
+		t.Errorf("expected events list to contain link %q", expectedLink)
+	}
+}
+
 func TestEventTimeDisplayedInAthens(t *testing.T) {
 	cleanAll(t)
 	tmpl := parsePage("events.html")

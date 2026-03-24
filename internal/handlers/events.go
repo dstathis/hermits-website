@@ -15,8 +15,9 @@ import (
 )
 
 type EventsHandler struct {
-	DB        *sql.DB
-	Templates *template.Template
+	DB             *sql.DB
+	Templates      *template.Template
+	DetailTemplate *template.Template
 }
 
 func (h *EventsHandler) List(w http.ResponseWriter, r *http.Request) {
@@ -39,6 +40,29 @@ func (h *EventsHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := h.Templates.ExecuteTemplate(w, "layout", data); err != nil {
+		http.Error(w, "Template error", http.StatusInternalServerError)
+	}
+}
+
+func (h *EventsHandler) Detail(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	event, err := db.GetEventByID(h.DB, id)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if event == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	data := map[string]interface{}{
+		"Title": event.Title,
+		"Event": event,
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := h.DetailTemplate.ExecuteTemplate(w, "layout", data); err != nil {
 		http.Error(w, "Template error", http.StatusInternalServerError)
 	}
 }
