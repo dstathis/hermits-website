@@ -54,6 +54,7 @@
                         <td>{{.Location}}</td>
                         <td class="actions">
                             <a href="/admin/events/{{.ID}}/edit" class="btn btn-sm">Edit</a>
+                            <a href="/admin/events/new?copy={{.ID}}" class="btn btn-sm btn-secondary">Copy</a>
                             <form method="POST" action="/admin/events/{{.ID}}/notify" style="display:inline;">
                                 {{$.CSRFField}}
                                 <button type="submit" class="btn btn-sm btn-notify"

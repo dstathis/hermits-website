@@ -129,8 +129,18 @@ func (h *AdminHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 
 // GET /admin/events/new
 func (h *AdminHandler) NewEventForm(w http.ResponseWriter, r *http.Request) {
+	event := &db.Event{}
+
+	// If ?copy=<id> is set, pre-fill from an existing event
+	if copyID := r.URL.Query().Get("copy"); copyID != "" {
+		if src, err := db.GetEventByID(h.DB, copyID); err == nil && src != nil {
+			event = src
+			event.ID = "" // Clear ID so the form creates a new event
+		}
+	}
+
 	data := map[string]interface{}{
-		"Event":     &db.Event{},
+		"Event":     event,
 		"IsNew":     true,
 		"CSRFField": middleware.CSRFTemplateField(r),
 	}

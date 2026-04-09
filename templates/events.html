@@ -11,20 +11,20 @@
     <div class="events-list">
         {{range .Upcoming}}
         <a href="/events/{{.ID}}" class="event-card-link">
-        <div class="event-card">
-            <div class="event-format">{{.Format}}</div>
-            <h3>{{.Title}}</h3>
-            <div class="event-meta">
-                <span class="event-date">📅 {{formatDate .Date "Monday, 2 January 2006 · 15:04"}}</span>
-                <span class="event-location">
-                    📍 {{if .LocationURL}}<a href="{{.LocationURL}}" target="_blank"
-                        rel="noopener">{{.Location}}</a>{{else}}{{.Location}}{{end}}
-                </span>
-                <span class="event-fee">🎟️ {{.EntryFee}}</span>
+            <div class="event-card">
+                <div class="event-format">{{.Format}}</div>
+                <h3>{{.Title}}</h3>
+                <div class="event-meta">
+                    <span class="event-date">📅 {{formatDate .Date "Monday, 2 January 2006 · 15:04"}}</span>
+                    <span class="event-location">
+                        📍 {{if .LocationURL}}<a href="{{.LocationURL}}" target="_blank"
+                            rel="noopener">{{.Location}}</a>{{else}}{{.Location}}{{end}}
+                    </span>
+                    <span class="event-fee">🎟️ {{.EntryFee}}</span>
+                </div>
+                <p class="event-desc">{{.Description}}</p>
+                <span class="btn btn-sm">📥 Add to Calendar</span>
             </div>
-            <p class="event-desc">{{.Description}}</p>
-            <span class="btn btn-sm">📥 Add to Calendar</span>
-        </div>
         </a>
         {{end}}
     </div>
@@ -41,14 +41,14 @@
     <div class="events-list">
         {{range .Past}}
         <a href="/events/{{.ID}}" class="event-card-link">
-        <div class="event-card past">
-            <div class="event-format">{{.Format}}</div>
-            <h3>{{.Title}}</h3>
-            <div class="event-meta">
-                <span class="event-date">📅 {{formatDate .Date "Monday, 2 January 2006 · 15:04"}}</span>
-                <span class="event-location">📍 {{.Location}}</span>
+            <div class="event-card past">
+                <div class="event-format">{{.Format}}</div>
+                <h3>{{.Title}}</h3>
+                <div class="event-meta">
+                    <span class="event-date">📅 {{formatDate .Date "Monday, 2 January 2006 · 15:04"}}</span>
+                    <span class="event-location">📍 {{.Location}}</span>
+                </div>
             </div>
-        </div>
         </a>
         {{end}}
     </div>

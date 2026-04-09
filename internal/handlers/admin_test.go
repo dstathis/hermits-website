@@ -390,3 +390,105 @@ func TestAdminChangePassword(t *testing.T) {
 		t.Error("expected new password to work")
 	}
 }
+
+func TestAdminNewEventForm_Copy(t *testing.T) {
+	cleanAll(t)
+	h := newAdminHandler()
+
+	// Create a source event to copy
+	e := &db.Event{
+		Title:       "Original Event",
+		Format:      "Legacy",
+		Date:        futureDate(),
+		Location:    "Dragonphoenix Inn",
+		LocationURL: "https://maps.example.com",
+		EntryFee:    "10€",
+		Description: "Proxy-friendly tournament",
+	}
+	db.CreateEvent(testDB, e)
+
+	handler := middleware.CSRF("test-secret")(http.HandlerFunc(h.NewEventForm))
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/events/new?copy="+e.ID, nil)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+
+	body := rec.Body.String()
+	// Form should be pre-filled with the source event's data
+	if !strings.Contains(body, "Original Event") {
+		t.Error("expected form to contain copied event title")
+	}
+	if !strings.Contains(body, "Legacy") {
+		t.Error("expected form to contain copied event format")
+	}
+	if !strings.Contains(body, "Dragonphoenix Inn") {
+		t.Error("expected form to contain copied event location")
+	}
+	if !strings.Contains(body, "https://maps.example.com") {
+		t.Error("expected form to contain copied event location URL")
+	}
+	if !strings.Contains(body, "10€") {
+		t.Error("expected form to contain copied event entry fee")
+	}
+	if !strings.Contains(body, "Proxy-friendly tournament") {
+		t.Error("expected form to contain copied event description")
+	}
+	// Should still be a "Create" form, not an "Edit" form
+	if !strings.Contains(body, "Create New Event") {
+		t.Error("expected form title to say 'Create New Event'")
+	}
+	if strings.Contains(body, "Edit Event") {
+		t.Error("form should not say 'Edit Event'")
+	}
+}
+
+func TestAdminNewEventForm_CopyInvalidID(t *testing.T) {
+	h := newAdminHandler()
+
+	handler := middleware.CSRF("test-secret")(http.HandlerFunc(h.NewEventForm))
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/events/new?copy=00000000-0000-0000-0000-000000000000", nil)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	// Should still show a blank new event form
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "Create New Event") {
+		t.Error("expected blank new event form")
+	}
+}
+
+func TestAdminDashboardHasCopyButton(t *testing.T) {
+	cleanAll(t)
+	h := newAdminHandler()
+
+	db.CreateAdminUser(testDB, "copyuser", "pass1234", "")
+	user, _ := db.Authenticate(testDB, "copyuser", "pass1234")
+
+	e := &db.Event{Title: "Copyable Event", Format: "Legacy", Date: futureDate()}
+	db.CreateEvent(testDB, e)
+
+	handler := middleware.CSRF("test-secret")(http.HandlerFunc(h.Dashboard))
+	req := httptest.NewRequest(http.MethodGet, "/admin", nil)
+	ctx := context.WithValue(req.Context(), middleware.UserIDKey, user.ID)
+	req = req.WithContext(ctx)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+
+	body := rec.Body.String()
+	expectedLink := "/admin/events/new?copy=" + e.ID
+	if !strings.Contains(body, expectedLink) {
+		t.Errorf("expected dashboard to contain copy link %q", expectedLink)
+	}
+}
